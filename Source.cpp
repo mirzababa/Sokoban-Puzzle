@@ -44,6 +44,13 @@ std::pair<board,agent> Board() {
 			for (short int j = 0; j < column; j++) 
 			{
 				inputfile >> input[i][j].shape; 
+
+				if (input[i][j].shape == '#') { input[i][j].wall = true; }
+				if (input[i][j].shape == 'S') { input[i][j].agent = true; }
+				if (input[i][j].shape == '.') { input[i][j].free = true; }
+				if (input[i][j].shape == '@') { input[i][j].box = true; }
+				if (input[i][j].shape == 'X') { input[i][j].goal = true; }
+
 				input[i][j].position.first = i;
 				input[i][j].position.second = j;
 				//Identify the position of the agent
@@ -89,56 +96,454 @@ std::pair<vector<tile>, agent> removewalls(pair<board, agent> board) {
 /*Explanation: Legal move
 input: Board and current location of agent(x,y)
 output:New board with new agent's location*/
-board moveup(pair<vector<tile>, agent> en)
+pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 {
-
-	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i-1 & en.second.j) != en.first[en.first.size()].position)//not wall
+	short int n;	//index of the upper tile of the agent in vector
+	short int a;	// index of the agent in vector
+	short int th;	//index of the two higher tile in vector
+	//If the upper tile is free
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i-1 && en.second.j) != en.first[en.first.size()].position)//not wall
 	{
-		//box
-		
-			
-		//free
 		for (short int i = 0; i < en.first.size(); i++)
 		{
-			if (en.first[i].position.first == en.second.i) 
-			{
-				if (en.first[i].position.second == en.second.j)
+				if (en.first[i].position.first == en.second.i)
 				{
-
+					if (en.first[i].position.second == en.second.j) { a = i; }	
 				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+		}
+		//Simulate motion
+		if (en.first[n].free == true) 
+		{
+			en.first[n].free = false;
+			en.first[n].agent = true;
+
+			en.first[a].free = true;
+			en.first[a].agent = false;
+			en.second.i = en.first[n].position.first;
+			en.second.j = en.first[n].position.second;
+		}
+		//return new environmet after the move
+		return en;
+	}
+
+	//If the upper tile is box
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
+		{
+			for (short int i = 0; i < en.first.size(); i++)
+			{
+				if (en.first[i].position.first == en.second.i)
+				{
+					if (en.first[i].position.second == en.second.j) { a = i; }
+				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+				if (i > 1)
+				{
+					if (en.first[i].position.first == en.second.i - 2)
+					{
+						if (en.first[i].position.second == en.second.j) { th = i; }
+
+					}
+				}
+
 			}
+			//Simulate motion for box and agent
+			if (en.first[n].box == true)
+			{
+				//move the box
+				en.first[n].box = false;
+				en.first[n].free = true;
+				en.first[th].box = true;
+				en.first[th].free = false;
+
+				en.first[a].free = true;
+				en.first[a].agent = false;
+				en.first[n].free = false;
+				en.first[n].agent = true;
+				en.second.i = en.first[n].position.first;
+				en.second.j = en.first[n].position.second;
+			}
+			//return new environmet after the move
+			return en;
 		}
 	}
 	
 }
-
-board movedown(board b, short int i, short int j) 
+pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 {
-	b.Grid[i][j].agent = false;
-	b.Grid[i][j].free = true;
-	b.Grid[i + 1][j].agent = true;
-	b.Grid[i + 1][j].free = false;
-	return b;
+	short int n;	//index of the upper tile of the agent in vector
+	short int a;	// index of the agent in vector
+	short int th;	//index of the two higher tile in vector
+					//If the upper tile is free
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		for (short int i = 0; i < en.first.size(); i++)
+		{
+			if (en.first[i].position.first == en.second.i)
+			{
+				if (en.first[i].position.second == en.second.j) { a = i; }
+			}
+			if (i > 0)
+			{
+				if (en.first[i].position.first == en.second.i - 1)
+				{
+					if (en.first[i].position.second == en.second.j) { n = i; }
+
+				}
+			}
+		}
+		//Simulate motion
+		if (en.first[n].free == true)
+		{
+			en.first[n].free = false;
+			en.first[n].agent = true;
+
+			en.first[a].free = true;
+			en.first[a].agent = false;
+			en.second.i = en.first[n].position.first;
+			en.second.j = en.first[n].position.second;
+		}
+		//return new environmet after the move
+		return en;
+	}
+
+	//If the upper tile is box
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
+		{
+			for (short int i = 0; i < en.first.size(); i++)
+			{
+				if (en.first[i].position.first == en.second.i)
+				{
+					if (en.first[i].position.second == en.second.j) { a = i; }
+				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+				if (i > 1)
+				{
+					if (en.first[i].position.first == en.second.i - 2)
+					{
+						if (en.first[i].position.second == en.second.j) { th = i; }
+
+					}
+				}
+
+			}
+			//Simulate motion for box and agent
+			if (en.first[n].box == true)
+			{
+				//move the box
+				en.first[n].box = false;
+				en.first[n].free = true;
+				en.first[th].box = true;
+				en.first[th].free = false;
+
+				en.first[a].free = true;
+				en.first[a].agent = false;
+				en.first[n].free = false;
+				en.first[n].agent = true;
+				en.second.i = en.first[n].position.first;
+				en.second.j = en.first[n].position.second;
+			}
+			//return new environmet after the move
+			return en;
+		}
+	}
+
 }
 
-board moveright(board b, short int i, short int j)
+pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 {
-	b.Grid[i][j].agent = false;
-	b.Grid[i][j].free = true;
-	b.Grid[i][j + 1].agent = true;
-	b.Grid[i][j + 1].free = false;
-	return b;
+	short int n;	//index of the upper tile of the agent in vector
+	short int a;	// index of the agent in vector
+	short int th;	//index of the two higher tile in vector
+					//If the upper tile is free
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		for (short int i = 0; i < en.first.size(); i++)
+		{
+			if (en.first[i].position.first == en.second.i)
+			{
+				if (en.first[i].position.second == en.second.j) { a = i; }
+			}
+			if (i > 0)
+			{
+				if (en.first[i].position.first == en.second.i - 1)
+				{
+					if (en.first[i].position.second == en.second.j) { n = i; }
+
+				}
+			}
+		}
+		//Simulate motion
+		if (en.first[n].free == true)
+		{
+			en.first[n].free = false;
+			en.first[n].agent = true;
+
+			en.first[a].free = true;
+			en.first[a].agent = false;
+			en.second.i = en.first[n].position.first;
+			en.second.j = en.first[n].position.second;
+		}
+		//return new environmet after the move
+		return en;
+	}
+
+	//If the upper tile is box
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
+		{
+			for (short int i = 0; i < en.first.size(); i++)
+			{
+				if (en.first[i].position.first == en.second.i)
+				{
+					if (en.first[i].position.second == en.second.j) { a = i; }
+				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+				if (i > 1)
+				{
+					if (en.first[i].position.first == en.second.i - 2)
+					{
+						if (en.first[i].position.second == en.second.j) { th = i; }
+
+					}
+				}
+
+			}
+			//Simulate motion for box and agent
+			if (en.first[n].box == true)
+			{
+				//move the box
+				en.first[n].box = false;
+				en.first[n].free = true;
+				en.first[th].box = true;
+				en.first[th].free = false;
+
+				en.first[a].free = true;
+				en.first[a].agent = false;
+				en.first[n].free = false;
+				en.first[n].agent = true;
+				en.second.i = en.first[n].position.first;
+				en.second.j = en.first[n].position.second;
+			}
+			//return new environmet after the move
+			return en;
+		}
+	}
+
 }
 
-board moveleft(board b, short int i, short int j) 
+pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 {
-	b.Grid[i][j].agent = false;
-	b.Grid[i][j].free = true;
-	b.Grid[i][j - 1].agent = true;
-	b.Grid[i][j - 1].free = false;
-	return b;
+	short int n;	//index of the upper tile of the agent in vector
+	short int a;	// index of the agent in vector
+	short int th;	//index of the two higher tile in vector
+					//If the upper tile is free
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		for (short int i = 0; i < en.first.size(); i++)
+		{
+			if (en.first[i].position.first == en.second.i)
+			{
+				if (en.first[i].position.second == en.second.j) { a = i; }
+			}
+			if (i > 0)
+			{
+				if (en.first[i].position.first == en.second.i - 1)
+				{
+					if (en.first[i].position.second == en.second.j) { n = i; }
+
+				}
+			}
+		}
+		//Simulate motion
+		if (en.first[n].free == true)
+		{
+			en.first[n].free = false;
+			en.first[n].agent = true;
+
+			en.first[a].free = true;
+			en.first[a].agent = false;
+			en.second.i = en.first[n].position.first;
+			en.second.j = en.first[n].position.second;
+		}
+		//return new environmet after the move
+		return en;
+	}
+
+	//If the upper tile is box
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
+		{
+			for (short int i = 0; i < en.first.size(); i++)
+			{
+				if (en.first[i].position.first == en.second.i)
+				{
+					if (en.first[i].position.second == en.second.j) { a = i; }
+				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+				if (i > 1)
+				{
+					if (en.first[i].position.first == en.second.i - 2)
+					{
+						if (en.first[i].position.second == en.second.j) { th = i; }
+
+					}
+				}
+
+			}
+			//Simulate motion for box and agent
+			if (en.first[n].box == true)
+			{
+				//move the box
+				en.first[n].box = false;
+				en.first[n].free = true;
+				en.first[th].box = true;
+				en.first[th].free = false;
+
+				en.first[a].free = true;
+				en.first[a].agent = false;
+				en.first[n].free = false;
+				en.first[n].agent = true;
+				en.second.i = en.first[n].position.first;
+				en.second.j = en.first[n].position.second;
+			}
+			//return new environmet after the move
+			return en;
+		}
+	}
+
 }
 
+pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
+{
+	short int n;	//index of the upper tile of the agent in vector
+	short int a;	// index of the agent in vector
+	short int th;	//index of the two higher tile in vector
+					//If the upper tile is free
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		for (short int i = 0; i < en.first.size(); i++)
+		{
+			if (en.first[i].position.first == en.second.i)
+			{
+				if (en.first[i].position.second == en.second.j) { a = i; }
+			}
+			if (i > 0)
+			{
+				if (en.first[i].position.first == en.second.i - 1)
+				{
+					if (en.first[i].position.second == en.second.j) { n = i; }
+
+				}
+			}
+		}
+		//Simulate motion
+		if (en.first[n].free == true)
+		{
+			en.first[n].free = false;
+			en.first[n].agent = true;
+
+			en.first[a].free = true;
+			en.first[a].agent = false;
+			en.second.i = en.first[n].position.first;
+			en.second.j = en.first[n].position.second;
+		}
+		//return new environmet after the move
+		return en;
+	}
+
+	//If the upper tile is box
+	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
+	{
+		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
+		{
+			for (short int i = 0; i < en.first.size(); i++)
+			{
+				if (en.first[i].position.first == en.second.i)
+				{
+					if (en.first[i].position.second == en.second.j) { a = i; }
+				}
+				if (i > 0)
+				{
+					if (en.first[i].position.first == en.second.i - 1)
+					{
+						if (en.first[i].position.second == en.second.j) { n = i; }
+
+					}
+				}
+				if (i > 1)
+				{
+					if (en.first[i].position.first == en.second.i - 2)
+					{
+						if (en.first[i].position.second == en.second.j) { th = i; }
+
+					}
+				}
+
+			}
+			//Simulate motion for box and agent
+			if (en.first[n].box == true)
+			{
+				//move the box
+				en.first[n].box = false;
+				en.first[n].free = true;
+				en.first[th].box = true;
+				en.first[th].free = false;
+
+				en.first[a].free = true;
+				en.first[a].agent = false;
+				en.first[n].free = false;
+				en.first[n].agent = true;
+				en.second.i = en.first[n].position.first;
+				en.second.j = en.first[n].position.second;
+			}
+			//return new environmet after the move
+			return en;
+		}
+	}
+
+}
 /*Explanation: the set of all actions*/ 
 vector<short int> action = { 1,2,3,4 };
 
