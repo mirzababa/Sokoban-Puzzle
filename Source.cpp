@@ -127,9 +127,11 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 		{
 			en.first[n].free = false;
 			en.first[n].agent = true;
+			en.first[n].shape = 'S';
 
 			en.first[a].free = true;
 			en.first[a].agent = false;
+			en.first[n].shape = '.';
 			en.second.i = en.first[n].position.first;
 			en.second.j = en.first[n].position.second;
 		}
@@ -172,13 +174,17 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 				//move the box
 				en.first[n].box = false;
 				en.first[n].free = true;
+				en.first[n].shape = '.';
 				en.first[th].box = true;
 				en.first[th].free = false;
+				en.first[n].shape = '@';
 
 				en.first[a].free = true;
 				en.first[a].agent = false;
+				en.first[n].shape = '.';
 				en.first[n].free = false;
 				en.first[n].agent = true;
+				en.first[n].shape = 'S';
 				en.second.i = en.first[n].position.first;
 				en.second.j = en.first[n].position.second;
 			}
@@ -460,9 +466,7 @@ pair<vector<tile>, agent> moveright(pair<vector<tile>, agent> en)
 }
 
 
-/*Explanation: reward function R(s,a,s') 
-input: Board and current location of agent(x,y)
-output:New board with new agent's location*/
+
 short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
 {
 	pair<vector<tile>, agent> ren;
@@ -471,12 +475,12 @@ short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
 	if (whichaction == 3) { ren = movedown(en); }
 	if (whichaction == 4) { ren = moveleft(en); }
 
-	/*Collision with the wall*/
+	//Collision with the wall
 	if (ren.first == en.first) {
 		return -10;
 	}
 
-	/*Collision with the box*/
+	//Collision with the box
 	if (f == false) {
 		for (short int i = 0; i < ren.first.size(); i++)
 		{
@@ -489,7 +493,7 @@ short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
 		}
 	}
 
-	/*Reach the goal along with the box*/
+	//Reach the goal along with the box
 	for (short int i = 0; i < ren.first.size(); i++)
 	{
 		if (ren.first[i].box == true && ren.first[i].goal == true)
