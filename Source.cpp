@@ -27,6 +27,8 @@ struct board
 	vector <vector<tile> > Grid;
 };
 
+/*Explanation: the set of all actions*/
+vector<short int> action = { 1,2,3,4 };
 /*Explanation: Read file and Create Environment Matrix
 input: void
 output:Grid*/
@@ -98,6 +100,7 @@ input: Board and current location of agent(x,y)
 output:New board with new agent's location*/
 pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 {
+	bool flag = false;	//used in reward function. if flag is true -> hit the wall
 	short int n;	//index of the upper tile of the agent in vector
 	short int a;	// index of the agent in vector
 	short int th;	//index of the two higher tile in vector
@@ -183,9 +186,10 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 			return en;
 		}
 	}
-	
+	flag = true;
 }
-pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
+
+pair<vector<tile>, agent> movedown(pair<vector<tile>, agent> en)
 {
 	short int n;	//index of the upper tile of the agent in vector
 	short int a;	// index of the agent in vector
@@ -275,7 +279,7 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 
 }
 
-pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
+pair<vector<tile>, agent> moveleft(pair<vector<tile>, agent> en)
 {
 	short int n;	//index of the upper tile of the agent in vector
 	short int a;	// index of the agent in vector
@@ -365,7 +369,7 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 
 }
 
-pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
+pair<vector<tile>, agent> moveright(pair<vector<tile>, agent> en)
 {
 	short int n;	//index of the upper tile of the agent in vector
 	short int a;	// index of the agent in vector
@@ -455,104 +459,48 @@ pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
 
 }
 
-pair<vector<tile>, agent> moveup(pair<vector<tile>, agent> en)
-{
-	short int n;	//index of the upper tile of the agent in vector
-	short int a;	// index of the agent in vector
-	short int th;	//index of the two higher tile in vector
-					//If the upper tile is free
-	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
-	{
-		for (short int i = 0; i < en.first.size(); i++)
-		{
-			if (en.first[i].position.first == en.second.i)
-			{
-				if (en.first[i].position.second == en.second.j) { a = i; }
-			}
-			if (i > 0)
-			{
-				if (en.first[i].position.first == en.second.i - 1)
-				{
-					if (en.first[i].position.second == en.second.j) { n = i; }
-
-				}
-			}
-		}
-		//Simulate motion
-		if (en.first[n].free == true)
-		{
-			en.first[n].free = false;
-			en.first[n].agent = true;
-
-			en.first[a].free = true;
-			en.first[a].agent = false;
-			en.second.i = en.first[n].position.first;
-			en.second.j = en.first[n].position.second;
-		}
-		//return new environmet after the move
-		return en;
-	}
-
-	//If the upper tile is box
-	if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 1 && en.second.j) != en.first[en.first.size()].position)//not wall
-	{
-		if (std::find(en.first[0].position, en.first[en.first.size()].position, en.second.i - 2 && en.second.j) != en.first[en.first.size()].position)
-		{
-			for (short int i = 0; i < en.first.size(); i++)
-			{
-				if (en.first[i].position.first == en.second.i)
-				{
-					if (en.first[i].position.second == en.second.j) { a = i; }
-				}
-				if (i > 0)
-				{
-					if (en.first[i].position.first == en.second.i - 1)
-					{
-						if (en.first[i].position.second == en.second.j) { n = i; }
-
-					}
-				}
-				if (i > 1)
-				{
-					if (en.first[i].position.first == en.second.i - 2)
-					{
-						if (en.first[i].position.second == en.second.j) { th = i; }
-
-					}
-				}
-
-			}
-			//Simulate motion for box and agent
-			if (en.first[n].box == true)
-			{
-				//move the box
-				en.first[n].box = false;
-				en.first[n].free = true;
-				en.first[th].box = true;
-				en.first[th].free = false;
-
-				en.first[a].free = true;
-				en.first[a].agent = false;
-				en.first[n].free = false;
-				en.first[n].agent = true;
-				en.second.i = en.first[n].position.first;
-				en.second.j = en.first[n].position.second;
-			}
-			//return new environmet after the move
-			return en;
-		}
-	}
-
-}
-/*Explanation: the set of all actions*/ 
-vector<short int> action = { 1,2,3,4 };
 
 /*Explanation: reward function R(s,a,s') 
 input: Board and current location of agent(x,y)
 output:New board with new agent's location*/
-/*short int reward() {
+short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
+{
+	pair<vector<tile>, agent> ren;
+	if (whichaction == 1) { ren = moveup(en); }
+	if (whichaction == 2) { ren = moveright(en); }
+	if (whichaction == 3) { ren = movedown(en); }
+	if (whichaction == 4) { ren = moveleft(en); }
 
-}*/
+	/*Collision with the wall*/
+	if (ren.first == en.first) {
+		return -10;
+	}
+
+	/*Collision with the box*/
+	if (f == false) {
+		for (short int i = 0; i < ren.first.size(); i++)
+		{
+			if (ren.first[i].box == true)
+			{
+				if (en.first[i].free == true) {
+					return 10;
+				}
+			}
+		}
+	}
+
+	/*Reach the goal along with the box*/
+	for (short int i = 0; i < ren.first.size(); i++)
+	{
+		if (ren.first[i].box == true && ren.first[i].goal == true)
+		{
+			if (en.first[i].goal == true) {
+				return 100;
+			}
+		}
+	}
+	return 0;
+}
 
 
 
@@ -561,6 +509,7 @@ output:New board with new agent's location*/
 int main() {
 	pair<board,agent> input = Board(); //کل محیط و مکان عامل
 	pair<vector<tile>, agent> environment = removewalls(input);//محیط قابل استفاده و مکان عامل
+	bool flag = false;	////used in reward function. if flag is true ->  agent once received a -10 reward and should change in value iteration
 	/*test
 	if (input.Grid[0][0].shape == '3') { cout << "T"; }
 	else { cout << "F"; }*/
