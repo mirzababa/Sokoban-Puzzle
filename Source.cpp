@@ -482,11 +482,15 @@ short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
 
 	//Collision with the box
 	if (f == false) {
-		for (short int i = 0; i < ren.first.size(); i++)
-		{
-			if (ren.first[i].box == true)
-			{
-				if (en.first[i].free == true) {
+		short int x = ren.second.i;
+		short int y = ren.second.j;
+		for (short int j = 0; j < ren.first.size(); j++) {
+			if (ren.first[j].box == true) {
+				if (ren.first[j].position.first == x - 1 && ren.first[j].position.second == y || //up
+					ren.first[j].position.first == x && ren.first[j].position.second == y + 1 || //right
+					ren.first[j].position.first == x + 1 && ren.first[j].position.second == y || //down
+					ren.first[j].position.first == x && ren.first[j].position.second == y - 1) //left
+				{
 					return 10;
 				}
 			}
@@ -494,15 +498,37 @@ short int Reward(pair<vector<tile>, agent> en , short int whichaction, bool f)
 	}
 
 	//Reach the goal along with the box
-	for (short int i = 0; i < ren.first.size(); i++)
-	{
-		if (ren.first[i].box == true && ren.first[i].goal == true)
-		{
-			if (en.first[i].goal == true) {
-				return 100;
+	short int x = ren.second.i;
+	short int y = ren.second.j;
+	for (short int j = 0; j < ren.first.size(); j++) {
+		if (ren.first[j].box == true) {
+			if (ren.first[j].position.first == x - 1 && ren.first[j].position.second == y || //up
+				ren.first[j].position.first == x && ren.first[j].position.second == y + 1 || //right
+				ren.first[j].position.first == x + 1 && ren.first[j].position.second == y || //down
+				ren.first[j].position.first == x && ren.first[j].position.second == y - 1) //left
+			{
+				short int k = ren.first[j].position.first;
+				short int l = ren.first[j].position.second;
+				for (short int m = 0; m < ren.first.size(); m++) {
+					if (ren.first[j].goal == true) {
+						if (x == k && y == l + 1) { //right
+							if (ren.first[m].position.first == x && ren.first[m].position.second == y + 1) { return 100; }
+						}
+						if (x == k && y == l - 1) { //left
+							if (ren.first[m].position.first == x && ren.first[m].position.second == y - 1) { return 100; }
+						}
+						if (x == k - 1 && y == l) { //up
+							if (ren.first[m].position.first == x - 1 && ren.first[m].position.second == y) { return 100; }
+						}
+						if (x == k + 1 && y == l) { //down
+							if (ren.first[m].position.first == x + 1 && ren.first[m].position.second == y) { return 100; }
+						}
+					}
+				}
 			}
 		}
 	}
+	
 	return 0;
 }
 
