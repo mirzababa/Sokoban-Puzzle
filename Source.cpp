@@ -22,6 +22,10 @@ struct board
 	vector <vector<tile> > Grid;
 };
 
+/*available action for each state
+*/
+vector<short int> action = { 1,2,3,4 };
+
 /*Explanation: Gaining the dimensions of the environment
 input: --
 output:The pair includes the length and width of the game environment */
@@ -92,162 +96,182 @@ board Board()
 }
 
 /*Explanation: Return all next states that are possible
-input: game environment
-output:The list include next states*/
-vector < board> StateGenerator(board temp)
+input: game environmet and an integr to mention direction of move
+1 -> up
+2 -> right
+3 -> down
+4 -> left
+output:The list include next states
+*/
+vector < board> StateGenerator(board temp , short int which)
 {
 	vector <board> output;
 	board b = temp;
 	//move up
-	for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
+	if (which == 1)
 	{
-		for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
+		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
 		{
-			if (b.Grid[i][j].agent == true) //find agent
+			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
 			{
-				if (b.Grid[i][j].position.first >= 1 && b.Grid[i - 1][j].free == true) //will not hit the box
+				if (b.Grid[i][j].agent == true) //find agent
 				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+					if (i >= 1)
+					{
+						if (b.Grid[i - 1][j].box == false) // will not hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					b.Grid[i - 1][j].agent = true;
-					b.Grid[i - 1][j].free = false;
+							b.Grid[i - 1][j].agent = true;
 
-					output.push_back(b);
-					break;
-				}
-				if (b.Grid[i][j].position.first >= 2 && b.Grid[i - 1][j].box == true && 
-					b.Grid[i - 2][j].free == true) // will hit the box
-				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+							output.push_back(b);
+							break;
+						}
+						if (b.Grid[i - 1][j].box == true) // will hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							b.Grid[i][j].free = true;
 
-					b.Grid[i - 1][j].agent = true;
-					b.Grid[i - 1][j].box = false;
+							b.Grid[i - 1][j].agent = true;
+							b.Grid[i - 1][j].box = false;
 
-					b.Grid[i - 2][j].box = true;
-					b.Grid[i - 2][j].free = false;
+							b.Grid[i - 2][j].box = true;
 
-					output.push_back(b);
-					break;
+							output.push_back(b);
+							break;
+						}
+					}
 				}
 			}
 		}
 	}
 	//move down
-	for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
+	if (which == 3)
 	{
-		for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
+		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
 		{
-			if (b.Grid[i][j].agent == true) //find agent
+			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
 			{
-				if (b.Grid[i][j].position.first <= b.Grid.size() - 1 && 
-					b.Grid[i + 1][j].free == true) //will not hit the box
+				if (b.Grid[i][j].agent == true) //find agent
 				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+					if (i < GetEnvironmentDimensions().first - 1)
+					{
+						if (b.Grid[i + 1][j].box == false) //will not hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							
+							b.Grid[i + 1][j].agent = true;
 
-					b.Grid[i + 1][j].agent = true;
-					b.Grid[i + 1][j].free = false;
+							output.push_back(b);
+							break;
+						}
+						if (b.Grid[i + 1][j].box == true) // will hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					output.push_back(b);
-					break;
-				}
-				if (b.Grid[i][j].position.first <= b.Grid.size() - 2 && b.Grid[i + 1][j].box == true 
-					&& b.Grid[i + 2][j].free == true) // will hit the box
-				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+							b.Grid[i + 1][j].agent = true;
+							b.Grid[i + 1][j].box = false;
 
-					b.Grid[i + 1][j].agent = true;
-					b.Grid[i + 1][j].box = false;
+							b.Grid[i + 2][j].box = true;
+							//b.Grid[i + 2][j].free = false;
 
-					b.Grid[i + 2][j].box = true;
-					b.Grid[i + 2][j].free = false;
-
-					output.push_back(b);
-					break;
+							output.push_back(b);
+							break;
+						}
+					}
 				}
 			}
 		}
 	}
 	//move left
-	for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
+	if (which == 4)
 	{
-		for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
+		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
 		{
-			if (b.Grid[i][j].agent == true) //find agent
+			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
 			{
-				if (b.Grid[i][j].position.second >= 1 && b.Grid[i - 1][j].free == true) //will not hit the box
+				if (b.Grid[i][j].agent == true) //find agent
 				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+					if (j > 0)
+					{
+						if (b.Grid[i][j - 1].box == false) //will not hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					b.Grid[i][j - 1].agent = true;
-					b.Grid[i][j - 1].free = false;
+							b.Grid[i][j - 1].agent = true;
+							//b.Grid[i][j - 1].free = false;
 
-					output.push_back(b);
-					break;
-				}
-				if (b.Grid[i][j].position.second >= 2 && b.Grid[i][j - 1].box == true && 
-					b.Grid[i][j - 2].free == true) // will hit the box
-				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+							output.push_back(b);
+							break;
+						}
+						if (b.Grid[i][j - 1].box == true) // will hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					b.Grid[i][j - 1].agent = true;
-					b.Grid[i][j - 1].box = false;
+							b.Grid[i][j - 1].agent = true;
+							b.Grid[i][j - 1].box = false;
 
-					b.Grid[i][j - 2].box = true;
-					b.Grid[i][j - 2].free = false;
+							b.Grid[i][j - 2].box = true;
+							//b.Grid[i][j - 2].free = false;
 
-					output.push_back(b);
-					break;
+							output.push_back(b);
+							break;
+
+						}
+					}
 				}
 			}
 		}
 	}
 	//move right
-	for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
+	if (which == 2)
 	{
-		for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
+		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
 		{
-			if (b.Grid[i][j].agent == true) //find agent
+			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
 			{
-				if (b.Grid[i][j].position.second <= b.Grid.size() - 1 && 
-					b.Grid[i][j + 1].free == true) //will not hit the box
+				if (b.Grid[i][j].agent == true) //find agent
 				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+					if (j < GetEnvironmentDimensions().second - 1)
+					{
+						if (b.Grid[i][j + 1].box == false) //will not hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					b.Grid[i][j + 1].agent = true;
-					b.Grid[i][j + 1].free = false;
+							b.Grid[i][j + 1].agent = true;
+							//b.Grid[i][j + 1].free = false;
 
-					output.push_back(b);
-					break;
-				}
-				if (b.Grid[i][j].position.second <= b.Grid.size() - 2 && b.Grid[i][j + 1].box == true && 
-					b.Grid[i][j + 2].free == true) // will hit the box
-				{
-					//Simulate motion
-					b.Grid[i][j].agent = false;
-					b.Grid[i][j].free = true;
+							output.push_back(b);
+							break;
+						}
+						if (b.Grid[i][j + 1].box == true) // will hit the box
+						{
+							//Simulate motion
+							b.Grid[i][j].agent = false;
+							//b.Grid[i][j].free = true;
 
-					b.Grid[i][j + 1].agent = true;
-					b.Grid[i][j + 1].box = false;
+							b.Grid[i][j + 1].agent = true;
+							b.Grid[i][j + 1].box = false;
 
-					b.Grid[i][j + 2].box = true;
-					b.Grid[i][j + 2].free = false;
+							b.Grid[i][j + 2].box = true;
+							//b.Grid[i][j + 2].free = false;
 
-					output.push_back(b);
-					break;
+							output.push_back(b);
+							break;
+						}
+					}
 				}
 			}
 		}
@@ -307,6 +331,6 @@ short int reward(board b)
 
 int main() {
 	board input = Board(); 
-	vector <board> BOARD = StateGenerator(input);
+	//vector <board> BOARD = StateGenerator(input);
 	return 0;
 }
