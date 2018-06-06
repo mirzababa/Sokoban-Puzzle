@@ -22,10 +22,10 @@ struct board
 	vector <vector<tile> > Grid;
 };
 
-/*available action for each state
-*/
-vector<short int> action = { 1,2,3,4 };
-
+struct value {
+	board b;
+	float v;
+};
 /*Explanation: Gaining the dimensions of the environment
 input: --
 output:The pair includes the length and width of the game environment */
@@ -329,8 +329,56 @@ short int reward(board b)
 	}
 }
 
+/*Explanation: get reward for state that the agent transfer to it
+input : Board
+output : an integer that point to reward for each state*/
+vector<value> value_iteration(board b)
+{
+	vector<value> value;
+	board s = b;
+	vector<board> state; // output of state generator
+	state.push_back(s);
+	bool ifchange = false; //to find out if convergence accured or not
+	while (ifchange == false)
+	{
+
+	}
+	
+}
+
+/*Explanation: print the value table(each state shown by agent and box position)
+input : value list
+output : null*/
+void print_table(vector<value> v) 
+{
+	cout << "\n\t";
+	for (short int i = 0; i < v.size(); i++) 
+	{
+		for (short int j = 0; j < GetEnvironmentDimensions().first; j++) 
+		{
+			for (short int k = 0; k < GetEnvironmentDimensions().first; k++) 
+			{
+				if (v[i].b.Grid[j][k].agent == true) 
+				{
+					cout << "<" << v[i].b.Grid[j][k].position.first << "," << v[i].b.Grid[j][k].position.second << ">";
+				}
+				if (v[i].b.Grid[j][k].box == true) 
+				{
+					cout << "<" << v[i].b.Grid[j][k].position.first << "," << v[i].b.Grid[j][k].position.second << ">" << "\t" << v[i].v << "\n";
+					break;
+				}
+			}
+			break;
+		}
+	}
+}
+
 int main() {
 	board input = Board(); 
 	//vector <board> BOARD = StateGenerator(input);
+
+
+	cout << "\tConvergence accured\n\tThe value table is shown below\n";
+	//print_table(value);
 	return 0;
 }
