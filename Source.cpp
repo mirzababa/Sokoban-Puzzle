@@ -10,22 +10,37 @@ start time: May 24, 2018*/
 
 using namespace std;
 
-struct tile
+struct agent
 {
-	bool box, agent, wall, free, goal;
-	char shape;
-	pair<short int, short int> position;
+	short int x, y;
 };
 
-struct board
+struct box
 {
-	vector <vector<tile> > Grid;
+	short int x, y;
+};
+
+struct state
+{
+	agent a;
+	box b;
+};
+
+struct position {
+	short int x, y;
+};
+
+struct tile
+{
+	bool box, agent, goal;
+	position p;
 };
 
 struct value {
-	board b;
+	state s;
 	float v;
 };
+
 /*Explanation: Gaining the dimensions of the environment
 input: --
 output:The pair includes the length and width of the game environment */
@@ -51,334 +66,256 @@ pair<short int, short int> GetEnvironmentDimensions()
 	return ED;
 }
 
-/*Explanation: Read file and Create Environment Matrix
-input: void
-output:Grid*/
-board Board()
+/*Explanation: Getting free houses to move the agent in the game environment
+input: --
+output:The vector includes the houses other than walls of the game environment*/
+vector<tile> makegrid()
 {
+	vector<tile> MovementEnvironmet;
+	tile temp;
 	fstream inputfile;
 	inputfile.open("E:\\Course\\AI\\AI3\\project\\HW1\\Soko1.txt");
-	if (inputfile.is_open()) 
+	if (inputfile.is_open())
 	{
 		string dummyLine;
 		getline(inputfile, dummyLine);//skip file's first line 
 
 		short int line = GetEnvironmentDimensions().first;
 		short int col = GetEnvironmentDimensions().second;
+		
+		char shape;
 
-		vector <vector<tile> > input(line, vector<tile>(col)); //create dynamic line*col vector
 		for (short int i = 0; i < line; i++)
 		{
-			for (short int j = 0; j < col; j++)
+			for (short int j = 0; j < col; j++) 
 			{
-				inputfile >> input[i][j].shape;
+				inputfile >> shape;
 
-				if (input[i][j].shape == '#') { input[i][j].wall = true; }
-				if (input[i][j].shape == 'S') { input[i][j].agent = true; }
-				if (input[i][j].shape == '.') { input[i][j].free = true; }
-				if (input[i][j].shape == '@') { input[i][j].box = true; }
-				if (input[i][j].shape == 'X') { input[i][j].goal = true; }
+				if (shape != '#') 
+				{
+					if (shape == '@')
+					{
+						temp.box = true;
+						temp.agent = false;
+						temp.goal = false;
+						temp.p.x = i;
+						temp.p.y = j;
 
-				input[i][j].position.first = i;
-				input[i][j].position.second = j;
+						MovementEnvironmet.push_back(temp);
+					}
+					if (shape == '.')
+					{
+						temp.box = false;
+						temp.agent = false;
+						temp.goal = false;
+						temp.p.x = i;
+						temp.p.y = j;
+
+						MovementEnvironmet.push_back(temp);
+					}
+					if (shape == 'X')
+					{
+						temp.box = false;
+						temp.agent = false;
+						temp.goal = true;
+						temp.p.x = i;
+						temp.p.y = j;
+
+						MovementEnvironmet.push_back(temp);
+					}
+					if (shape == 'S')
+					{
+						temp.box = false;
+						temp.agent = true;
+						temp.goal = false;
+						temp.p.x = i;
+						temp.p.y = j;
+
+						MovementEnvironmet.push_back(temp);
+					}
+				}
 			}
 		}
-		board result;
-		result.Grid = input;
-		return result;
 	}
 	else
 	{
-		cout << "\n\tCouldn't read file!\n\tPlease enter correct path \n\n";
+		cout << "\n\tCouldn't read file!\n\tPlease enter the correct path \n\n";
 		exit(0);
 	}
-
+	return MovementEnvironmet;
 }
 
-/*Explanation: Return all next states that are possible
-input: game environmet and an integr to mention direction of move
-1 -> up
-2 -> right
-3 -> down
-4 -> left
-output:The list include next states
-*/
-vector < board> StateGenerator(board temp , short int which)
+vector<state>stategenerator(state s, vector<tile>grid , short int w) 
 {
-	vector <board> output;
-	board b = temp;
-	//move up
-	if (which == 1)
+	state temp;
+	vector<state>newstates;
+	for (short int i = 0; i < grid.size(); i++) 
 	{
-		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
+		if (grid[i].agent == true)
 		{
-			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
+			//up
+			if (w == 1)
 			{
-				if (b.Grid[i][j].agent == true) //find agent
-				{
-					if (i >= 1)
+				if (s.a.x == grid[i].p.x - 1 && s.a.y == grid[i].p.y)
+				{ /////////dummy//////////////!
+					temp.a.x = s.a.x - 1;	temp.a.y = s.a.y;
+					if (grid[i].p.x - 1 == s.b.x && grid[i].p.y == s.b.y && s.b.x == grid[i].p.x - 1 && s.b.y == grid[i].p.y) //hit the box
 					{
-						if (b.Grid[i - 1][j].box == false) // will not hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i - 1][j].agent = true;
-
-							output.push_back(b);
-							break;
-						}
-						if (b.Grid[i - 1][j].box == true) // will hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							b.Grid[i][j].free = true;
-
-							b.Grid[i - 1][j].agent = true;
-							b.Grid[i - 1][j].box = false;
-
-							b.Grid[i - 2][j].box = true;
-
-							output.push_back(b);
-							break;
-						}
+						temp.b.x = s.b.x - 1;	temp.b.y = s.b.y;
 					}
+					temp.b.x = s.b.x;	temp.b.y = s.b.y;
+					newstates.push_back(temp);
+				}
+			}
+			//down
+			if (w == 3)
+			{
+				if (s.a.x == grid[i].p.x + 1 && s.a.y == grid[i].p.y)
+				{
+					temp.a.x = s.a.x + 1;	temp.a.y = s.a.y;
+					if (grid[i].p.x + 1 == s.b.x && grid[i].p.y == s.b.y && s.b.x == grid[i].p.x + 1 && s.b.y == grid[i].p.y)
+					{
+						temp.b.x = s.b.x + 1;	temp.b.y = s.b.y;
+					}
+					temp.b.x = s.b.x;	temp.b.y = s.b.y;
+					newstates.push_back(temp);
+				}
+			}
+			//left
+			if (w == 4)
+			{
+				if (s.a.x == grid[i].p.x && s.a.y == grid[i].p.y - 1)
+				{
+					temp.a.x = s.a.x;	temp.a.y = s.a.y - 1;
+					if (grid[i].p.x == s.b.x && grid[i].p.y - 1 == s.b.y && s.b.x == grid[i].p.x && s.b.y == grid[i].p.y - 1)
+					{
+						temp.b.x = s.b.x;	temp.b.y = s.b.y - 1;
+					}
+					temp.b.x = s.b.x;	temp.b.y = s.b.y;
+					newstates.push_back(temp);
+				}
+			}
+			//right
+			if (w == 2)
+			{
+				if (s.a.x == grid[i].p.x && s.a.y == grid[i].p.y + 1)
+				{
+					temp.a.x = s.a.x;	temp.a.y = s.a.y + 1;
+					if (grid[i].p.x == s.b.x && grid[i].p.y + 1 == s.b.y && s.b.x == grid[i].p.x && s.b.y == grid[i].p.y + 1)
+					{
+						temp.b.x = s.b.x;	temp.b.y = s.b.y + 1;
+					}
+					temp.b.x = s.b.x;	temp.b.y = s.b.y;
+					newstates.push_back(temp);
 				}
 			}
 		}
+		break;
 	}
-	//move down
-	if (which == 3)
-	{
-		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
-		{
-			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
-			{
-				if (b.Grid[i][j].agent == true) //find agent
-				{
-					if (i < GetEnvironmentDimensions().first - 1)
-					{
-						if (b.Grid[i + 1][j].box == false) //will not hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							
-							b.Grid[i + 1][j].agent = true;
-
-							output.push_back(b);
-							break;
-						}
-						if (b.Grid[i + 1][j].box == true) // will hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i + 1][j].agent = true;
-							b.Grid[i + 1][j].box = false;
-
-							b.Grid[i + 2][j].box = true;
-							//b.Grid[i + 2][j].free = false;
-
-							output.push_back(b);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	//move left
-	if (which == 4)
-	{
-		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
-		{
-			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
-			{
-				if (b.Grid[i][j].agent == true) //find agent
-				{
-					if (j > 0)
-					{
-						if (b.Grid[i][j - 1].box == false) //will not hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i][j - 1].agent = true;
-							//b.Grid[i][j - 1].free = false;
-
-							output.push_back(b);
-							break;
-						}
-						if (b.Grid[i][j - 1].box == true) // will hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i][j - 1].agent = true;
-							b.Grid[i][j - 1].box = false;
-
-							b.Grid[i][j - 2].box = true;
-							//b.Grid[i][j - 2].free = false;
-
-							output.push_back(b);
-							break;
-
-						}
-					}
-				}
-			}
-		}
-	}
-	//move right
-	if (which == 2)
-	{
-		for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
-		{
-			for (short int j = 0; j < GetEnvironmentDimensions().second; j++)
-			{
-				if (b.Grid[i][j].agent == true) //find agent
-				{
-					if (j < GetEnvironmentDimensions().second - 1)
-					{
-						if (b.Grid[i][j + 1].box == false) //will not hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i][j + 1].agent = true;
-							//b.Grid[i][j + 1].free = false;
-
-							output.push_back(b);
-							break;
-						}
-						if (b.Grid[i][j + 1].box == true) // will hit the box
-						{
-							//Simulate motion
-							b.Grid[i][j].agent = false;
-							//b.Grid[i][j].free = true;
-
-							b.Grid[i][j + 1].agent = true;
-							b.Grid[i][j + 1].box = false;
-
-							b.Grid[i][j + 2].box = true;
-							//b.Grid[i][j + 2].free = false;
-
-							output.push_back(b);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	return output;
+	return newstates;
 }
 
-/*Explanation: get reward for state that the agent transfer to it
-input : Board
-output : an integer that point to reward for each state*/
-short int reward(board b)
+
+short int reward(state s, short int a , vector<tile>grid) 
 {
-	bool flag = false;//flag change to true when the agent reach to the box firt time
-	for (short int i = 0; i < GetEnvironmentDimensions().first; i++)
-	{
-		for (short int j = 0; j < GetEnvironmentDimensions().second; j++) 
+	state newstate;
+	
+	if (a = 1) {
+		newstate.a.x = s.a.x - 1;	newstate.a.y = s.a.y;
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box بالاش جعبه هست
 		{
-			//reward = 100 -> Collision with the goal 
-			if (b.Grid[i][j].box == true && b.Grid[i][j].goal == true)
-			{
-				if (i > 0) {//up
-					if (b.Grid[i - 1][j].agent == true) { return 100; }
-				}
-				if (i < GetEnvironmentDimensions().first - 1) {//down
-					if (b.Grid[i + 1][j].agent == true) { return 100; }
-				}
-				if (j < GetEnvironmentDimensions().second - 1) {//right
-					if (b.Grid[i][j + 1].agent == true) { return 100; }
-				}
-				if (j > 0) {//left
-					if (b.Grid[i][j - 1].agent == true) { return 100; }
-				}
+			newstate.b.x = s.b.x - 1;	newstate.b.y = s.b.y;
+		}
+		newstate.b.x = s.b.x;	newstate.b.y = s.b.y;
+		for (short int i = 0; i < grid.size(); i++) {
+			if (grid[i].goal == true 
+				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y && 
+				newstate.a.x == newstate.b.x + 1 && newstate.a.y == newstate.b.y) {
+				return 100;//reach to the goal
 			}
 
-			//reward = -10 -> Collision with the wall after moving
-			if (b.Grid[i][j].agent == b.Grid[i][j].wall == true) { return -10; }
+			if (grid[i].p.x == newstate.a.x  && grid[i].p.y== newstate.a.y
+				|| grid[i].p.x == newstate.b.x && grid[i].p.y == newstate.b.y) { return -10; }
+		}
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y) { return 10; } //hit the box
+	}
 
-			//reward = 10 -> Collision with the box(just in first time)
-			if (flag != true)
-			{
-				if (i > 0) {//up
-					if (b.Grid[i - 1][j].box == true) { return 10; }
-				}
-				if (i < GetEnvironmentDimensions().first - 1) {//down
-					if (b.Grid[i + 1][j].box == true) { return 10; }
-				}
-				if (j < GetEnvironmentDimensions().second - 1) {//right
-					if (b.Grid[i][j + 1].box == true) { return 10; }
-				}
-				if (j > 0) {//left
-					if (b.Grid[i][j - 1].box == true) { return 10; }
-				}
+	if (a = 2) {
+		newstate.a.x = s.a.x;	newstate.a.y = s.a.y + 1;
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box 
+		{
+			newstate.b.x = s.b.x;	newstate.b.y = s.b.y + 1;
+		}
+		newstate.b.x = s.b.x;	newstate.b.y = s.b.y;
+		for (short int i = 0; i < grid.size(); i++) {
+			if (grid[i].goal == true
+				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y &&
+				newstate.a.x == newstate.b.x && newstate.a.y == newstate.b.y - 1) {
+				return 100;//reach to the goal
+			}
+
+			if (grid[i].p.x == newstate.a.x  && grid[i].p.y == newstate.a.y
+				|| grid[i].p.x == newstate.b.x && grid[i].p.y == newstate.b.y) {
+				return -10;
 			}
 		}
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y) { return 10; } //hit the box
 	}
-}
 
-/*Explanation: get reward for state that the agent transfer to it
-input : Board
-output : an integer that point to reward for each state*/
-vector<value> value_iteration(board b)
-{
-	vector<value> value;
-	board s = b;
-	vector<board> state; // output of state generator
-	state.push_back(s);
-	bool ifchange = false; //to find out if convergence accured or not
-	while (ifchange == false)
-	{
+	if (a = 3) {
+		newstate.a.x = s.a.x + 1;	newstate.a.y = s.a.y;
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box بالاش جعبه هست
+		{
+			newstate.b.x = s.b.x + 1;	newstate.b.y = s.b.y;
+		}
+		newstate.b.x = s.b.x;	newstate.b.y = s.b.y;
+		for (short int i = 0; i < grid.size(); i++) {
+			if (grid[i].goal == true
+				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y &&
+				newstate.a.x == newstate.b.x - 1 && newstate.a.y == newstate.b.y) {
+				return 100;//reach to the goal
+			}
 
+			if (grid[i].p.x == newstate.a.x  && grid[i].p.y == newstate.a.y
+				|| grid[i].p.x == newstate.b.x && grid[i].p.y == newstate.b.y) {
+				return -10;
+			}
+		}
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y) { return 10; } //hit the box
 	}
+
+	if (a = 4) {
+		newstate.a.x = s.a.x;	newstate.a.y = s.a.y - 1;
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box 
+		{
+			newstate.b.x = s.b.x;	newstate.b.y = s.b.y - 1;
+		}
+		newstate.b.x = s.b.x;	newstate.b.y = s.b.y;
+		for (short int i = 0; i < grid.size(); i++) {
+			if (grid[i].goal == true
+				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y &&
+				newstate.a.x == newstate.b.x && newstate.a.y == newstate.b.y + 1) {
+				return 100;//reach to the goal
+			}
+
+			if (grid[i].p.x == newstate.a.x  && grid[i].p.y == newstate.a.y
+				|| grid[i].p.x == newstate.b.x && grid[i].p.y == newstate.b.y) {
+				return -10;
+			}
+		}
+		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y) { return 10; } //hit the box
+	}
+
 	
 }
 
-/*Explanation: print the value table(each state shown by agent and box position)
-input : value list
-output : null*/
-void print_table(vector<value> v) 
-{
-	cout << "\n\t";
-	for (short int i = 0; i < v.size(); i++) 
-	{
-		for (short int j = 0; j < GetEnvironmentDimensions().first; j++) 
-		{
-			for (short int k = 0; k < GetEnvironmentDimensions().first; k++) 
-			{
-				if (v[i].b.Grid[j][k].agent == true) 
-				{
-					cout << "<" << v[i].b.Grid[j][k].position.first << "," << v[i].b.Grid[j][k].position.second << ">";
-				}
-				if (v[i].b.Grid[j][k].box == true) 
-				{
-					cout << "<" << v[i].b.Grid[j][k].position.first << "," << v[i].b.Grid[j][k].position.second << ">" << "\t" << v[i].v << "\n";
-					break;
-				}
-			}
-			break;
-		}
-	}
+vector<value> value_iteration() {
+
 }
 
-int main() {
-	board input = Board(); 
-	//vector <board> BOARD = StateGenerator(input);
+int main()
+{
+	vector<tile> temp = makegrid();
 
-
-	cout << "\tConvergence accured\n\tThe value table is shown below\n";
-	//print_table(value);
 	return 0;
 }
