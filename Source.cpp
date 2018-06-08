@@ -1,6 +1,6 @@
 ﻿/*The first AI home work, third cource
 Writen by Yasamin Sadat Mirzababa
-start time: May 24, 2018*/
+start time: June 01, 2018*/
 
 #include<iostream>
 #include<vector>
@@ -10,37 +10,64 @@ start time: May 24, 2018*/
 
 using namespace std;
 
-bool reward_10 = false;
+bool reward_10 = false; //if the reward_10 if false -> reward '-10' not assigned to any state 
 
+/**
+determine the agent position
+x: the agent line in the environment
+y: the agent column in the environment
+*/
 struct agent
 {
 	short int x, y;
 };
 
+/**
+determine the box position
+x: the box line in the environment
+y: the agent column in the environment
+*/
 struct box
 {
 	short int x, y;
 };
 
+/*
+to present each state. with each agent's move, a new state is created
+
+each state contain "a box" and an "agent"
+*/
 struct state
 {
 	agent a;
 	box b;
 };
 
+/*
+
+*/
 struct position {
 	short int x, y;
 };
 
+/*
+used to capture the environment rfom the file
+*/
 struct tile
 {
 	bool box, agent, goal;
 	position p;
 };
 
+
 struct value {
 	state s;
 	float v;
+	short int a; //witch action
+};
+
+struct policy {
+	state s;
 	short int a; //witch action
 };
 
@@ -85,16 +112,16 @@ vector<tile> makegrid()
 
 		short int line = GetEnvironmentDimensions().first;
 		short int col = GetEnvironmentDimensions().second;
-		
+
 		char shape;
 
 		for (short int i = 0; i < line; i++)
 		{
-			for (short int j = 0; j < col; j++) 
+			for (short int j = 0; j < col; j++)
 			{
 				inputfile >> shape;
 
-				if (shape != '#') 
+				if (shape != '#')
 				{
 					if (shape == '@')
 					{
@@ -147,13 +174,11 @@ vector<tile> makegrid()
 	}
 	return MovementEnvironmet;
 }
-/*Explanation: Getting free houses to move the agent in the game environment
-input: --
-output:The vector includes the houses other than walls of the game environment*/
 
-/*Explanation: Getting free houses to move the agent in the game environment
-input: --
-output:The vector includes the houses other than walls of the game environment*/
+/*Explanation: create next state
+input: state s -> the state we want to find next state
+vector<tile>grid -> game environment
+output:The state in wich the agent has moved up*/
 state upstate(state s, vector<tile>grid)
 {
 	state junk;
@@ -184,6 +209,10 @@ state upstate(state s, vector<tile>grid)
 	return junk;
 }
 
+/*Explanation: create next state
+input: state s -> the state we want to find next state
+vector<tile>grid -> game environment
+output:The state in wich the agent has moved right*/
 state rightstate(state s, vector<tile>grid) {
 	state junk;
 	junk.a.x = junk.a.y = -90;
@@ -213,6 +242,10 @@ state rightstate(state s, vector<tile>grid) {
 	return junk;
 }
 
+/*Explanation: create next state
+input: state s -> the state we want to find next state
+vector<tile>grid -> game environment
+output:The state in wich the agent has moved down*/
 state downstate(state s, vector<tile>grid) {
 	state junk;
 	junk.a.x = junk.a.y = -90;
@@ -242,6 +275,10 @@ state downstate(state s, vector<tile>grid) {
 	return junk;
 }
 
+/*Explanation: create next state
+input: state s -> the state we want to find next state
+vector<tile>grid -> game environment
+output:The state in wich the agent has moved left*/
 state leftstate(state s, vector<tile>grid) {
 	state junk;
 	junk.a.x = junk.a.y = -90;
@@ -271,48 +308,53 @@ state leftstate(state s, vector<tile>grid) {
 	return junk;
 }
 
-
-vector<vector<state>> allstates(state s, vector<tile>grid)  //adjency matrix
+/*Explanation: generate all state that will create
+input: state s -> the starting state
+vector<tile>grid -> game environment
+output:a state contain all possible state that created from the start state*/
+vector<state> allstates(state s, vector<tile>grid)  //adjency matrix
 {
-	vector<vector<state>> all;
-	
-	
-	
-	
-	
+	vector<state> all;
+
 	/*short int iterator = 1;
 	vector<state> states;
 	state temp;
-	
+
 	//	temp = stategenerator(s, grid);
-		states.push_back(temp);
-	
+	states.push_back(temp);
+
 	/*while (!states.empty())
 	{
-		for (short int j = 0; j <= 4; j++) {//for each action
-			temp = stategenerator(states[iterator], grid, j);
-			for (short int k = 0; k < states.size(); k++) {
-				if (temp.a.x == states[k].a.x && temp.a.y == states[k].a.y
-					&& temp.b.x == states[k].b.x && temp.b.y == states[k].b.y) // skip repetitious state
-				{
-					continue;
-				}
-			}
-			states.push_back(temp);
-			iterator = iterator + 1;
-		}
+	for (short int j = 0; j <= 4; j++) {//for each action
+	temp = stategenerator(states[iterator], grid, j);
+	for (short int k = 0; k < states.size(); k++) {
+	if (temp.a.x == states[k].a.x && temp.a.y == states[k].a.y
+	&& temp.b.x == states[k].b.x && temp.b.y == states[k].b.y) // skip repetitious state
+	{
+	continue;
+	}
+	}
+	states.push_back(temp);
+	iterator = iterator + 1;
+	}
 	}
 	return states;*/
+	return all;
 }
 
-/*Explanation: Getting free houses to move the agent in the game environment
-input: --
-output:The vector includes the houses other than walls of the game environment*/
-short int reward(state s, vector<tile>grid)  //باید ببینه تو این وضعیتی که هست چه پاداشی میگیره
+/*Explanation: if the agent is in the current state and perform a definite move, what is the new state?
+input: state s -> the current state
+vector<tile>grid -> game environment
+short int a -> a=1 (move up)
+a=2 (move right)
+a=3 (move down)
+a=4 (move left)
+output:an integer to present reward for new state*/
+short int reward(state s, vector<tile>grid, short int a)
 {
 	state newstate;
-	int a;
-	if (int a = 1) {
+
+	if (a = 1) {
 		newstate.a.x = s.a.x - 1;	newstate.a.y = s.a.y;
 		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box بالاش جعبه هست
 		{
@@ -320,8 +362,8 @@ short int reward(state s, vector<tile>grid)  //باید ببینه تو این �
 		}
 		newstate.b.x = s.b.x;	newstate.b.y = s.b.y;
 		for (short int i = 0; i < grid.size(); i++) {
-			if (grid[i].goal == true 
-				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y && 
+			if (grid[i].goal == true
+				&& newstate.b.x == grid[i].p.x && newstate.b.y == grid[i].p.y &&
 				newstate.a.x == newstate.b.x + 1 && newstate.a.y == newstate.b.y) {
 				return 100;//reach to the goal
 			}
@@ -412,44 +454,51 @@ short int reward(state s, vector<tile>grid)  //باید ببینه تو این �
 		else { return 0; }
 	}
 
-	
+
 }
 
-/*Explanation: Getting free houses to move the agent in the game environment
-input: --
-output:The vector includes the houses other than walls of the game environment*/
-//a -> eta
-float value_iteration(state s, float a, vector<tile>grid) 
+/*Explanation: the value of each state
+input: vector<state>all -> output of allstates function
+state s -> the current state
+vector<tile>grid -> game environment
+short int a -> a=1 (move up)
+a=2 (move right)
+a=3 (move down)
+a=4 (move left)
+output:a float number to present value for each state*/
+float value_iteration(vector<state>all, state s, short int a, vector<tile>grid)
 {
+	float eta = 0.8;
 	float val;
 	vector<float>tempval;
 	vector<state> states;
 	state temp;
-
+	/*
 	temp = upstate(s, grid);
 	if (temp.a.x != -90) {
-		states.push_back(temp);
+	states.push_back(temp);
 
 	}
 	temp = rightstate(s, grid);
 	if (temp.a.x != -90) {
-		states.push_back(temp);
+	states.push_back(temp);
 
 	}
 	temp = downstate(s, grid);
 	if (temp.a.x != -90) {
-		states.push_back(temp);
+	states.push_back(temp);
 	}
 	temp = leftstate(s, grid);
 	if (temp.a.x != -90) {
-		states.push_back(temp);
+	states.push_back(temp);
 	}
-
-	for (short int i = 0; i < states.size(); i++) 
+	*/
+	for (short int i = 0; i < all.size(); i++)
 	{
-		for (short int j = 1; j <= 4; j++) 
+		s = all[i];
+		for (short int j = 1; j <= 4; j++)
 		{
-			tempval[j] = reward(states[i], grid) + a*(value_iteration(states[i], a, grid));
+			tempval[j] = reward(all[i], grid, j) + eta*(value_iteration(all, s, a, grid));
 		}
 		val = std::max_element(tempval.front(), tempval.back());
 	}
@@ -458,128 +507,142 @@ float value_iteration(state s, float a, vector<tile>grid)
 
 }
 
-//map the value to the state and action
-vector<value> value_table(state s, short int a , vector<tile>grid)
+/*Explanation: map the value to the state and action
+input: vector<state>all -> output of allstates function
+state s -> the current state
+vector<tile>grid -> game environment
+short int a -> a=1 (move up)
+a=2 (move right)
+a=3 (move down)
+a=4 (move left)
+output:a list contain state,value and the action that reach this value for this function*/
+vector<value> value_table(vector<state> all, state s, short int a, vector<tile>grid)
 {
+	float eta = 0.8;
 	value init;
 	int iterations = 0;
 	state goal;
 	for (short int i = 0; i < grid.size(); i++) {
-		if (grid[i].goal == true) 
+		if (grid[i].goal == true)
 		{
 			goal.a.x = grid[i].p.x;		goal.a.y = grid[i].p.y;
 		}
 	}
 	bool ifconvergence = false; //to find out if convergence accured or not
 	vector<value> output;
-	for (short int i = 0; i < output.size(); i++) {
-		if (s.a.x != output[i].s.a.x && s.a.y != output[i].s.a.y &&
-			s.b.x != output[i].s.b.x && s.b.y != output[i].s.b.y)
-		{
-			init.v = 0.0;
-			init.s = s;
-			output.push_back(init);
-		}
-	}
+
 
 	while (s.a.x != goal.a.x && s.a.y != goal.a.y) //not reach to goal
 	{
 		iterations += 1;
-		
-		init.v = value_iteration(s, a, grid);
-		
+
+		init.v = value_iteration(all, s, a, grid);
+		init.a = a;
+
 	}
-	
+	init.v = 100.0;
 	return output;
-	
+
 }
 
-int main()
+/*Explanation: create policy table
+input: vector<state>all -> output of allstates function
+vector<tile>grid -> game environment
+output:a list contain state and the action. this action is best move for agent to create new state*/
+vector<policy> policy_iteration(vector<state> all, vector<tile> grid)
 {
-	vector<tile> sa = makegrid();
-	//float v;
-	state start;
-	state starttemp1;
-	state starttemp2;
-	state starttemp3;
-	state starttemp4;
-	vector<state> news;
-	start.a.x = start.b.x = -100;
-	for (short int i = 0; i < sa.size(); i++) {
-		if (sa[i].agent == true) {
-			start.a.x = sa[i].p.x;	start.a.y = sa[i].p.y;
-		}
-		if (sa[i].box == true) {
-			start.b.x = sa[i].p.x;	start.b.y = sa[i].p.y;
-		}
-		if (start.a.x > 0 && start.b.x > 0) { break; }
-	}
-	/*
-	for (int i = 0; i < 10; i++) {
-		reward_10 = false;
-		v = value_iteration(start, 0.8, temp);
-	}
-	 */
-	
-	//allstates(start, temp);
-	//stategenerator(start, temp, 1);
-	/*state tempp;
-	for (short int i = 0; i < temp.size(); i++)
+	state s;
+	bool noChange;
+	int iteration;
+	vector<policy> poutput;
+	vector<value> voutput;
+	state temp;
+	policy p;
+	float eta = 0.8;
+	//initial policy table
+	for (short int i = 0; i < all.size(); i++)
 	{
-		if (start.a.x == temp[i].p.x + 1 && start.a.y == temp[i].p.y)
+		temp = upstate(all[i], grid);
+		if (temp.a.x != -90)
 		{
-			tempp.a.x = start.a.x - 1;	tempp.a.y = start.a.y;
-			tempp.b.x = start.b.x;	tempp.b.y = start.b.y;
-			if (tempp.a.x == tempp.b.x && tempp.a.y == tempp.b.y) //رفته رو خونه بغلیش که جعبه هست
+			p.a = 1;
+		}
+		else
+		{
+			temp = rightstate(all[i], grid);
+			if (temp.a.x != -90)
 			{
-				for (short int j = 0; j < temp.size(); j++)
+				p.a = 2;
+			}
+			else
+			{
+				temp = downstate(all[i], grid);
+				if (temp.a.x != -90)
 				{
-					if (tempp.a.x == temp[i].p.x + 1 && tempp.a.y == temp[i].p.y)
+					p.a = 3;
+				}
+				else
+				{
+					temp = leftstate(all[i], grid);
+					if (temp.a.x != -90)
 					{
-						tempp.b.x = tempp.b.x - 1;	tempp.b.y = tempp.b.y;
+						p.a = 4;
 					}
-					//cout << tempp.a.x << "," << tempp.a.y << "\n" << tempp.b.x << "," << tempp.b.y << "\n";
-					news.push_back(tempp);
 				}
 			}
 		}
 	}
-	cout << tempp.a.x << "," << tempp.a.y << "\n" << tempp.b.x << "," << tempp.b.y << "\n";*/
-	//for (short int d = 1; d <= 4; d++) {
-	/*starttemp1 = upstate(start, sa);
-		news.push_back(starttemp1);
+	poutput.push_back(p);
 
-		starttemp2 = rightstate(start, sa);
-		news.push_back(starttemp2);
+	//////////////////////////////////////////////
+	//initialize value arbitrarily
+	vector<value> v(all.size());
 
-		starttemp1 = stategenerator(start, sa, 3);
-		news.push_back(starttemp3);
+	noChange = true;
+	iteration = 0;
+	while (noChange && iteration <= 100)
+	{
+		noChange = false;
+		iteration += 1;
 
-		starttemp1 = stategenerator(start, sa, 4);
-		news.push_back(starttemp4);
-*/
-		
-	
-		/*starttemp1 = upstate(start, sa);
-		if(starttemp1.a.x != -90)
-		news.push_back(starttemp1);
+		for (short int i = 0; i < all.size(); i++)
+		{
+			voutput = value_table(all, all[i], poutput[i].a, grid);
+		}
 
-		starttemp1 = rightstate(start, sa);
-		if (starttemp1.a.x != -90)
-			news.push_back(starttemp1);
+		for (short int i = 0; i < all.size(); i++)
+		{
+			if (voutput[i].a != poutput[i].a)
+			{
+				poutput[i].a = voutput[i].a;
+			}
+			noChange = false;
+		}
 
-		starttemp1 = downstate(start, sa);
-		if (starttemp1.a.x != -90)
-			news.push_back(starttemp1);
+	}
+	return poutput;
+}
 
-		starttemp1 = leftstate(start, sa);
-		if (starttemp1.a.x != -90)
-			news.push_back(starttemp1);
-	
 
-//	}
-	 
-	 */
+int main()
+{
+	vector<tile> input = makegrid();
+	state start;
+	vector<state> news;
 
+	start.a.x = start.b.x = -100;
+	for (short int i = 0; i < input.size(); i++) {
+		if (input[i].agent == true) {
+			start.a.x = input[i].p.x;	start.a.y = input[i].p.y;
+		}
+		if (input[i].box == true) {
+			start.b.x = input[i].p.x;	start.b.y = input[i].p.y;
+		}
+		if (start.a.x > 0 && start.b.x > 0) { break; }
+	}
+
+	vector<state> allstate;
+	allstate = allstates(start, input);
+	policy_iteration(allstate, input);
 	return 0;
 }
