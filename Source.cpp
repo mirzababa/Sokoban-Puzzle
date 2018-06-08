@@ -272,14 +272,19 @@ state leftstate(state s, vector<tile>grid) {
 }
 
 
-/*vector<state> allstates(state s, vector<tile>grid)
+vector<vector<state>> allstates(state s, vector<tile>grid)  //adjency matrix
 {
-	 
-	short int iterator = 1;
+	vector<vector<state>> all;
+	
+	
+	
+	
+	
+	/*short int iterator = 1;
 	vector<state> states;
 	state temp;
 	
-		temp = stategenerator(s, grid);
+	//	temp = stategenerator(s, grid);
 		states.push_back(temp);
 	
 	/*while (!states.empty())
@@ -297,17 +302,17 @@ state leftstate(state s, vector<tile>grid) {
 			iterator = iterator + 1;
 		}
 	}
-	return states;
-}*/
+	return states;*/
+}
 
 /*Explanation: Getting free houses to move the agent in the game environment
 input: --
 output:The vector includes the houses other than walls of the game environment*/
-short int reward(state s, short int a , vector<tile>grid) 
+short int reward(state s, vector<tile>grid)  //باید ببینه تو این وضعیتی که هست چه پاداشی میگیره
 {
 	state newstate;
-	
-	if (a = 1) {
+	int a;
+	if (int a = 1) {
 		newstate.a.x = s.a.x - 1;	newstate.a.y = s.a.y;
 		if (newstate.a.x == s.b.x && newstate.a.y == s.b.y)//hit rhe box بالاش جعبه هست
 		{
@@ -416,40 +421,77 @@ output:The vector includes the houses other than walls of the game environment*/
 //a -> eta
 float value_iteration(state s, float a, vector<tile>grid) 
 {
-	bool ifconvergence = false; //to find out if convergence accured or not
 	float val;
-	vector <float> max;
-	short int iterations = 0;
-	vector<value> v;
-	value init; 
+	vector<float>tempval;
+	vector<state> states;
 	state temp;
-	vector<state> state; // output of state generator
 
-	state.push_back(s);
-	//initial value table
-	init.s = s;	init.v = 0.0;
-	v.push_back(init);
-	temp = s;
-	state.erase(state.begin());
-	for (short int i = 1; i <= 4; i++) {
-	//	state[i] = stategenerator(s, grid, i);
-		init.s = state[i];	init.v = 0.0;
-		v.push_back(init);
+	temp = upstate(s, grid);
+	if (temp.a.x != -90) {
+		states.push_back(temp);
+
 	}
-	
-	while (ifconvergence == false)
+	temp = rightstate(s, grid);
+	if (temp.a.x != -90) {
+		states.push_back(temp);
+
+	}
+	temp = downstate(s, grid);
+	if (temp.a.x != -90) {
+		states.push_back(temp);
+	}
+	temp = leftstate(s, grid);
+	if (temp.a.x != -90) {
+		states.push_back(temp);
+	}
+
+	for (short int i = 0; i < states.size(); i++) 
 	{
-		iterations += 1;
-
-		for (short int i = 0; i < state.size(); i++) {  //for each state
-			for (short int j = 1; j <= 4; j++) { //for each action
-
-				max[j] = reward(temp, j, grid) + a * (value_iteration(state[i], a, grid));
-			}
-			val = *max_element(max.begin(), max.end());
+		for (short int j = 1; j <= 4; j++) 
+		{
+			tempval[j] = reward(states[i], grid) + a*(value_iteration(states[i], a, grid));
 		}
+		val = std::max_element(tempval.front(), tempval.back());
 	}
 	return val;
+
+
+}
+
+//map the value to the state and action
+vector<value> value_table(state s, short int a , vector<tile>grid)
+{
+	value init;
+	int iterations = 0;
+	state goal;
+	for (short int i = 0; i < grid.size(); i++) {
+		if (grid[i].goal == true) 
+		{
+			goal.a.x = grid[i].p.x;		goal.a.y = grid[i].p.y;
+		}
+	}
+	bool ifconvergence = false; //to find out if convergence accured or not
+	vector<value> output;
+	for (short int i = 0; i < output.size(); i++) {
+		if (s.a.x != output[i].s.a.x && s.a.y != output[i].s.a.y &&
+			s.b.x != output[i].s.b.x && s.b.y != output[i].s.b.y)
+		{
+			init.v = 0.0;
+			init.s = s;
+			output.push_back(init);
+		}
+	}
+
+	while (s.a.x != goal.a.x && s.a.y != goal.a.y) //not reach to goal
+	{
+		iterations += 1;
+		
+		init.v = value_iteration(s, a, grid);
+		
+	}
+	
+	return output;
+	
 }
 
 int main()
@@ -518,7 +560,7 @@ int main()
 */
 		
 	
-		starttemp1 = upstate(start, sa);
+		/*starttemp1 = upstate(start, sa);
 		if(starttemp1.a.x != -90)
 		news.push_back(starttemp1);
 
@@ -537,7 +579,7 @@ int main()
 
 //	}
 	 
-
+	 */
 
 	return 0;
 }
